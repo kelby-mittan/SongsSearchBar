@@ -16,8 +16,11 @@ class SongDetailController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        updateUI()
 
     }
+    
+    
     func updateUI() {
         guard let validSong = song else {
             fatalError("could not load song")

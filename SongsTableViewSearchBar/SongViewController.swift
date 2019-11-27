@@ -8,8 +8,14 @@
 
 import UIKit
 
+enum SearchScope {
+    case name
+    case artist
+}
+
 class SongViewController: UIViewController {
     @IBOutlet weak var tableView: UITableView!
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var songs = [Song]() {
         didSet {
@@ -17,9 +23,23 @@ class SongViewController: UIViewController {
         }
     }
     
+    var currentScope = SearchScope.name
+    
+    var searchQuery = "" {
+        didSet {
+            switch currentScope {
+            case .name:
+                songs = Song.loveSongs.filter { $0.name.lowercased().contains(searchQuery.lowercased()) }
+            case .artist:
+                songs = Song.loveSongs.filter { $0.artist.lowercased().contains(searchQuery.lowercased()) }
+            }
+        }
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         tableView.dataSource = self
+        searchBar.delegate = self
         loadData()
     }
     
@@ -27,16 +47,16 @@ class SongViewController: UIViewController {
         songs = Song.loveSongs
     }
     
-    //    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-    //
-    //            guard let weatherVC = segue.destination as? WeatherDetailController, let indexPath = tableView.indexPathForSelectedRow else {
-    //                return
-    //            }
-    //
-    //            weatherVC.cityWeather = citiesArr[indexPath.row]
-    //        }
-    //
-    //
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        
+        guard let songVC = segue.destination as? SongDetailController, let indexPath = tableView.indexPathForSelectedRow else {
+            fatalError("....")
+        }
+        
+        songVC.song = songs[indexPath.row]
+    }
+    
+    
 }
 
 extension SongViewController: UITableViewDataSource {
@@ -57,6 +77,51 @@ extension SongViewController: UITableViewDataSource {
         
         
         return cell
+    }
+    
+    
+}
+
+extension SongViewController: UISearchBarDelegate {
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+
+        searchBar.resignFirstResponder()
+        
+        guard let searchText = searchBar.text else {
+            return
+        }
+        
+        guard !searchText.isEmpty else {
+            loadData()
+            return
+        }
+        
+        searchQuery = searchText
+
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        
+        guard !searchText.isEmpty else {
+            loadData()
+            return
+        }
+        
+        searchQuery = searchText
+
+    }
+    
+    func searchBar(_ searchBar: UISearchBar, selectedScopeButtonIndexDidChange selectedScope: Int) {
+        
+        switch selectedScope {
+        case 0:
+            currentScope = .name
+        case 1:
+            currentScope = .artist
+        default:
+            print("not a valid search scope")
+        }
     }
     
     
